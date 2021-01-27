@@ -2,7 +2,7 @@ import sqlite3
 import sys
 from os.path import isfile
 
-from constants import DATABASE_PATH
+from app.constants import DATABASE_PATH
 
 
 def migrate(path):

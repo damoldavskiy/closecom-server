@@ -1,7 +1,8 @@
 CREATE TABLE user (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    name TEXT
 );
 
 CREATE TABLE token (

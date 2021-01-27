@@ -1,9 +1,23 @@
+import logging
 from flask import Flask, g
 
-import account
+from app.constants import LOG_PATH
+from app.utils import error
+from app.views import account
+
 
 app = Flask(__name__)
-app.register_blueprint(account.app)
+app.register_blueprint(account.mod)
+
+logging.basicConfig(filename=LOG_PATH,
+                    level=logging.INFO,
+                    format='[%(asctime)s] [%(process)d] [%(levelname)s] %(message)s',
+                    datefmt='%F %X %z')
+
+
+@app.errorhandler(500)
+def internal_error(exception):
+    return error('internal server error', 500)
 
 
 @app.teardown_appcontext
