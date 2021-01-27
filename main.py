@@ -1,7 +1,7 @@
 import logging
 from flask import Flask, g
 
-from app.constants import LOG_PATH
+from app.constants import ERROR_LOG_PATH
 from app.utils import error
 from app.views import account
 
@@ -9,7 +9,7 @@ from app.views import account
 app = Flask(__name__)
 app.register_blueprint(account.mod)
 
-logging.basicConfig(filename=LOG_PATH,
+logging.basicConfig(filename=ERROR_LOG_PATH,
                     level=logging.INFO,
                     format='[%(asctime)s] [%(process)d] [%(levelname)s] %(message)s',
                     datefmt='%F %X %z')
