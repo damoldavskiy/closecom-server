@@ -3,7 +3,7 @@ from flask import current_app, g
 from hashlib import sha256
 from os import urandom
 
-from app.constants import DATABASE_PATH, TOKEN_SIZE
+from constants import DATABASE_PATH, TOKEN_SIZE
 
 
 def log_info(message):

@@ -1,13 +1,15 @@
 import logging
 from flask import Flask, g
 
-from app.constants import ERROR_LOG_PATH
-from app.utils import error
-from app.views import account
+from constants import ERROR_LOG_PATH
+from controllers import account, bluetooth, messenger
+from util import error
 
 
 app = Flask(__name__)
 app.register_blueprint(account.mod)
+app.register_blueprint(bluetooth.mod)
+app.register_blueprint(messenger.mod)
 
 logging.basicConfig(filename=ERROR_LOG_PATH,
                     level=logging.INFO,
