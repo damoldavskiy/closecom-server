@@ -20,7 +20,7 @@ class Account:
     def __init__(self, json):
         self.email = json.get('email', None)
         self.password = json.get('password', None)
-        if self.password:
+        if check_password(self.password):
             self.password = hash_password(self.password)
 
     def valid(self):
@@ -40,8 +40,9 @@ class User:
         self.id = row[0]
         self.email = row[1]
         self.password = row[2]
-        self.name = row[3]
-        self.bid = row[4]
+        self.confirmed = row[3]
+        self.name = row[4]
+        self.bid = row[5]
 
     def match(self, account):
         return self.email == account.email and self.password == account.password
@@ -50,5 +51,6 @@ class User:
 class Token:
     def __init__(self, row):
         self.id = row[0]
-        self.token = row[1]
-        self.user_id = row[2]
+        self.type = row[1]
+        self.token = row[2]
+        self.user_id = row[3]

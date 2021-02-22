@@ -33,7 +33,7 @@ def set_bid():
     if len(bid) == 0:
         return error('invalid bid', 400)
 
-    user = base.get_user_by_token(token)
+    user = base.get_user_by_token(token, 'access')
     if user == None:
         return error('invalid token', 401)
 

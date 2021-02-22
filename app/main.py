@@ -1,8 +1,10 @@
 import logging
 from flask import Flask, g
+from flask_mail import Mail
 
-from constants import ERROR_LOG_PATH
+from constants import ERROR_LOG_PATH, MAIL_SERVER, MAIL_PORT
 from controllers import account, bluetooth, messenger
+from secrets import secrets
 from util import error
 
 
@@ -10,6 +12,17 @@ app = Flask(__name__)
 app.register_blueprint(account.mod)
 app.register_blueprint(bluetooth.mod)
 app.register_blueprint(messenger.mod)
+
+app.config.update(dict(
+    MAIL_SERVER = MAIL_SERVER,
+    MAIL_PORT = MAIL_PORT,
+    MAIL_USE_TLS = False,
+    MAIL_USE_SSL = True,
+    MAIL_USERNAME = secrets['mail_username'],
+    MAIL_PASSWORD = secrets['mail_password']
+))
+
+mail = Mail(app)
 
 logging.basicConfig(filename=ERROR_LOG_PATH,
                     level=logging.INFO,

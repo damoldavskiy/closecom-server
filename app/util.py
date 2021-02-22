@@ -1,5 +1,6 @@
 import sqlite3
 from flask import current_app, g
+from flask_mail import Mail, Message
 from hashlib import sha256
 from os import urandom
 
@@ -9,6 +10,14 @@ from constants import DATABASE_PATH, TOKEN_SIZE
 def log_info(message):
     current_app.logger.info(message)
 
+
+def send_email(recipient, title, text):
+    message = Message(title, sender='donotreply@closecom.org', recipients=[recipient])
+    message.body = text
+    with current_app.app_context():
+        mail = Mail()
+        mail.send(message)
+    
 
 def get_token():
     return urandom(TOKEN_SIZE).hex()

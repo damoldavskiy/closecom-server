@@ -2,12 +2,14 @@ CREATE TABLE user (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL,
     password TEXT NOT NULL,
+    confirmed INTEGER DEFAULT 0,
     name TEXT,
     bid TEXT
 );
 
 CREATE TABLE token (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type TEXT NOT NULL,
     token TEXT NOT NULL,
     user_id INTEGER NOT NULL,
     FOREIGN KEY(user_id) REFERENCES user(id)

@@ -2,8 +2,8 @@ from models.account import User, Token
 from util import get_db, get_token
 
 
-USER_COLUMNS = 'id, email, password, name, bid'
-TOKEN_COLUMNS = 'id, token, user_id'
+USER_COLUMNS = 'id, email, password, confirmed, name, bid'
+TOKEN_COLUMNS = 'id, type, token, user_id'
 CHAT_COLUMNS = 'id, type'
 MEMBERSHIP_COLUMNS = 'user_id, chat_id'
 MESSAGE_COLUMNS = 'id, chat_id, user_id, time, text'
@@ -19,10 +19,10 @@ def get_user_by_email(email):
     return User(row)
 
 
-def get_user_by_token(token):
+def get_user_by_token(token, token_type):
     db = get_db()
     cursor = db.cursor()
-    cursor.execute(f'SELECT {TOKEN_COLUMNS} FROM token WHERE token=?', (token,))
+    cursor.execute(f'SELECT {TOKEN_COLUMNS} FROM token WHERE token=? AND type=?', (token,token_type))
     row = cursor.fetchone()
     if row == None:
         return None
@@ -56,12 +56,18 @@ def delete_user(user):
     cursor.execute('DELETE FROM user WHERE email=?', (user.email,))
 
 
-def create_token(user):
+def create_token(user, token_type):
     db = get_db()
     cursor = db.cursor()
     token = get_token()
-    cursor.execute('INSERT INTO token (token, user_id) VALUES (?, ?)', (token, user.id))
+    cursor.execute('INSERT INTO token (token, type, user_id) VALUES (?, ?, ?)', (token, token_type, user.id))
     return token
+
+
+def set_user_confirmed(user, confirmed):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('UPDATE user SET confirmed=? WHERE id=?', (confirmed, user.id))
 
 
 def set_user_about(user, about):
