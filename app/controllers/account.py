@@ -3,7 +3,7 @@ from flask import Blueprint, request
 import base
 from models.account import Account, UserAbout, User
 from secrets import secrets
-from util import error, get_db, log_info, ok, send_email
+from util import error, get_db, log_info, ok, send_email, html_message
 
 
 mod = Blueprint('account', __name__)
@@ -26,7 +26,7 @@ def create():
     confirm_token = base.create_token(user, 'confirm')
     get_db().commit()
 
-    send_email(user.email, 'Confirm account', 'http://' + secrets['host_address'] + '/account/confirm?token=' + confirm_token)
+    send_email(user.email, 'Account verification', 'http://' + secrets['host_address'] + '/account/confirm?token=' + confirm_token)
 
     log_info(f'User created {user.email}')
 
@@ -40,15 +40,19 @@ def confirm():
     confirm_token = args.get('token')
 
     user = base.get_user_by_token(confirm_token, 'confirm')
+    title = 'Account verification'
     if user == None:
-        return 'Invalid confirmation token'
+        return html_message(title, 'Invalid verification token')
+
+    if user.confirmed:
+        return html_message(title, 'Account is already verified')
 
     base.set_user_confirmed(user, 1)
     get_db().commit()
 
     log_info('User confirmed {user.email}')
 
-    return 'Account confirmed'
+    return html_message('Account has been verified')
 
 
 @mod.route('/account/auth', methods=['POST'])

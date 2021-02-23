@@ -7,6 +7,9 @@ from os import urandom
 from constants import DATABASE_PATH, TOKEN_SIZE
 
 
+HTML_MESSAGE = '<html><head><title>{}</title><style>body {color:#2D3CC8;font-family:sans-serif;text-align:center;margin-top:50px;font-size:24;}</style></head><body>{}</body></html>'
+
+
 def log_info(message):
     current_app.logger.info(message)
 
@@ -33,6 +36,10 @@ def ok():
 
 def error(message, code):
     return {'error_message': message}, code
+
+
+def html_message(title, message):
+    return HTML_MESSAGE.format(title, message), 200
 
 
 def get_db():

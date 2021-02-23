@@ -18,6 +18,7 @@ def user_about():
 
     return {
         'email': user.email,
+        'confirmed': user.confirmed,
         'about': {
             'name': user.name
         }
