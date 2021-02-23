@@ -92,16 +92,17 @@ def recovery_form():
     return html_password_change(recovery_token)
 
 
-@mod.route('/account/password_change', methods=['POST'])
-def password_change():
+@mod.route('/account/change_password', methods=['POST'])
+def change_password():
     content = request.form
 
     recovery_token = content['token']
-    password = hash_password(content['password'])
+    password = content['password']
 
     title = 'Account recovery'
     if not check_password(password):
         return html_message(title, 'Invalid password')
+    password = hash_password(password)
 
     user = base.get_user_by_token(recovery_token, 'recovery')
     if not user:

@@ -7,9 +7,6 @@ from os import urandom
 from constants import DATABASE_PATH, TOKEN_SIZE
 
 
-HTML_MESSAGE = '<html><head><title>{}</title><style>body{color:#2D3CC8;font-family:sans-serif;text-align:center;margin-top:50px;font-size:24;}</style></head><body>{}</body></html>'
-HTML_PASSWORD_CHANGE = '<html><head><title>{}</title><style>body {color:#2D3CC8;font-family:sans-serif;text-align:center;margin-top:50px;font-size:24;}input {margin-top: 20px;margin-left: 10px;margin-right: 10px;}</style></head><body>{}<form action=/account/change_password"><input type="password" name="password"><input type="submit" value="{}"><input type="hidden" name="token" value="{}"></form></body></html>'
-
 def log_info(message):
     current_app.logger.info(message)
 
@@ -39,11 +36,16 @@ def error(message, code):
 
 
 def html_message(title, message):
-    return HTML_MESSAGE.format(title, message), 200
+    return '<html><head><title>' + title + '</title><style>body{color:#2D3CC8;font-family:sans-serif;'\
+           'text-align:center;margin-top:50px;font-size:24;}</style></head><body>' + message + '</body></html>'
 
 
 def html_password_change(token):
-    return HTML_PASSWORD_CHANGE.format('Account recovery', 'Enter new password', 'Confirm', token)
+    return '<html><head><title>Account recovery</title><style>body{color:#2D3CC8;font-family:sans-serif;'\
+           'text-align:center;margin-top:50px;font-size:24;}input{margin-top:20px;margin-left:10px;margin-right:10px;}'\
+           '</style></head><body>Enter new password<form action="/account/change_password" method="post"><input type="password" name="password">'\
+           '<input type="submit" value="Confirm"><input type="hidden" name="token" value="' + token + '"></form></body></html>'
+
 
 def get_db():
     db = getattr(g, '_database', None)
