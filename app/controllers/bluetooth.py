@@ -13,7 +13,7 @@ def user_about():
 
     bid = args.get('bid')
     user = base.get_user_by_bid(bid)
-    if user == None:
+    if not user:
         return error('invalid bid', 400)
 
     return {
@@ -35,7 +35,7 @@ def set_bid():
         return error('invalid bid', 400)
 
     user = base.get_user_by_token(token, 'access')
-    if user == None:
+    if not user:
         return error('invalid token', 401)
 
     base.set_user_bid(user, bid)

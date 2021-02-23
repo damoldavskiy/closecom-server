@@ -13,7 +13,7 @@ def chats():
 
     token = args.get('token')
     user = base.get_user_by_token(token, 'access')
-    if user == None:
+    if not user:
         return error('invald token', 401)
     return error('not implemented', 404)
 
@@ -24,7 +24,7 @@ def chats_history():
 
     token = args.get('token')
     user = base.get_user_by_token(token, 'access')
-    if user == None:
+    if not user:
         return error('invald token', 401)
     return error('not implemented', 404)
 
@@ -35,7 +35,7 @@ def send_message():
 
     token = args.get('token')
     user = base.get_user_by_token(token, 'access')
-    if user == None:
+    if not user:
         return error('invald token', 401)
     return error('not implemented', 404)
 
@@ -46,7 +46,7 @@ def delete_message():
 
     token = args.get('token')
     user = base.get_user_by_token(token, 'access')
-    if user == None:
+    if not user:
         return error('invald token', 401)
     return error('not implemented', 404)
 
@@ -57,6 +57,6 @@ def delete_chat():
 
     token = args.get('token')
     user = base.get_user_by_token(token, 'access')
-    if user == None:
+    if not user:
         return error('invald token', 401)
     return error('not implemented', 404)

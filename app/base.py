@@ -64,6 +64,12 @@ def create_token(user, token_type):
     return token
 
 
+def set_user_password(user, password):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('UPDATE user SET password=? WHERE id=?', (password, user.id))
+
+
 def set_user_confirmed(user, confirmed):
     db = get_db()
     cursor = db.cursor()
