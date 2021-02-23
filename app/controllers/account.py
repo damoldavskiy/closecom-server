@@ -18,7 +18,7 @@ def create():
         return error('invalid email or password', 400)
 
     user = base.get_user_by_email(account.email)
-    if not user:
+    if user:
         return error('email already registered', 405)
 
     user = base.create_user(account)
