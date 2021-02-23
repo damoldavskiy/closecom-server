@@ -16,6 +16,8 @@ def user_about():
     if not user:
         return error('invalid bid', 400)
 
+    log_info(f'User about {user.email}')
+
     return {
         'email': user.email,
         'confirmed': user.confirmed,

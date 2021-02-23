@@ -50,7 +50,7 @@ def confirm():
     base.set_user_confirmed(user, 1)
     get_db().commit()
 
-    log_info('User confirmed {user.email}')
+    log_info(f'User confirmed {user.email}')
 
     return html_message(title, 'Account has been verified')
 
@@ -87,7 +87,7 @@ def recovery_form():
     if not user:
         return html_message('Account recovery', 'Invalid recovery token')
 
-    log_info('Password recovery form request {user.email}')
+    log_info(f'Password recovery form request {user.email}')
 
     return html_password_change(recovery_token)
 
@@ -111,7 +111,7 @@ def change_password():
     base.set_user_password(user, password)
     get_db().commit()
 
-    log_info('User password changed {user.email}')
+    log_info(f'User password changed {user.email}')
 
     return html_message(title, 'Password has been changed')
 
@@ -134,7 +134,7 @@ def auth():
     token = base.create_token(user, 'access')
     get_db().commit()
 
-    log_info('Authentication {user.email}')
+    log_info(f'Authentication {user.email}')
 
     return {'token': token}
 
@@ -151,7 +151,7 @@ def delete():
     base.delete_user(user)
     get_db().commit()
 
-    log_info('User deleted {user.email}')
+    log_info(f'User deleted {user.email}')
 
     return ok()
 
@@ -173,6 +173,6 @@ def set_about():
     base.set_user_about(user, about)
     get_db().commit()
 
-    log_info('User about updated {user.email}')
+    log_info(f'User about updated {user.email}')
 
     return ok()
