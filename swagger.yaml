@@ -1,6 +1,6 @@
 swagger: "2.0"
 info:
-  version: "1.0.0"
+  version: "1.0.1"
   title: "Closecom"
 tags:
 - name: "account"
@@ -52,6 +52,21 @@ paths:
       parameters:
       - in: "query"
         name: "token"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "OK"
+        "401":
+          description: "Invalid token"
+  /account/recovery:
+    post:
+      description: "Restore password for account by user email"
+      tags:
+      - "account"
+      parameters:
+      - in: "query"
+        name: "email"
         required: true
         type: "string"
       responses:
