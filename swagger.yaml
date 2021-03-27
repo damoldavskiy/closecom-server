@@ -140,16 +140,16 @@ paths:
         required: true
         type: "string"
       - in: "query"
-        name: "email"
+        name: "dialog_id"
         required: true
-        type: "string"
+        type: "integer"
       responses:
         "200":
           description: "OK"
           schema:
             $ref: "#/definitions/Dialog"
         "400":
-          description: "Invalid email"
+          description: "Invalid dialog id"
         "401":
           description: "Invalid token"
   /messenger/send_message:
@@ -162,9 +162,9 @@ paths:
         required: true
         type: "string"
       - in: "query"
-        name: "email"
+        name: "dialog_id"
         required: true
-        type: "string"
+        type: "integer"
       - in: "body"
         name: "body"
         required: true
@@ -260,6 +260,9 @@ definitions:
       text:
         type: "string"
         example: "Hello, John!"
+      timestamp: 
+        type: "integer"
+        example: 1616853526
   StoredMessage:
     type: "object"
     properties:
@@ -270,6 +273,9 @@ definitions:
       text:
         type: "string"
         example: "Hello, John!"
+      timestamp: 
+        type: "integer"
+        example: 1616853526
   Dialog:
     type: "object"
     properties:
