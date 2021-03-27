@@ -1,0 +1,282 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Closecom"
+tags:
+- name: "account"
+- name: "bluetooth"
+- name: "messenger"
+paths:
+  /account/create:
+    post:
+      tags:
+      - "account"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Account"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Token"
+        "400":
+          description: "Invalid email or password"
+        "405":
+          description: "Email already registered"
+  /account/auth:
+    post:
+      tags:
+      - "account"
+      parameters:
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Account"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Token"
+        "400":
+          description: "Invalid email or password"
+        "405":
+          description: "Email already registered"
+  /account/delete:
+    post:
+      tags:
+      - "account"
+      parameters:
+      - in: "query"
+        name: "token"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "OK"
+        "401":
+          description: "Invalid token"
+  /bluetooth/user_info:
+    get:
+      tags:
+      - "bluetooth"
+      parameters:
+      - in: "query"
+        name: "bid"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/User"
+        "400":
+          description: "Invalid BID"
+        "401":
+          description: "Invalid token"
+  /bluetooth/set_bid:
+    post:
+      tags:
+      - "bluetooth"
+      parameters:
+      - in: "query"
+        name: "token"
+        required: true
+        type: "string"
+      - in: "query"
+        name: "bid"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "OK"
+        "400":
+          description: "Invalid BID"
+        "401":
+          description: "Invalid token"
+  /messenger/dialogs:
+    get:
+      tags:
+      - "messenger"
+      parameters:
+      - in: "query"
+        name: "token"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Dialogs"
+        "400":
+          description: "Invalid email"
+        "401":
+          description: "Invalid token"
+  /messenger/dialog_history:
+    get:
+      tags:
+      - "messenger"
+      parameters:
+      - in: "query"
+        name: "token"
+        required: true
+        type: "string"
+      - in: "query"
+        name: "email"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Dialog"
+        "400":
+          description: "Invalid email"
+        "401":
+          description: "Invalid token"
+  /messenger/send_message:
+    post:
+      tags:
+      - "messenger"
+      parameters:
+      - in: "query"
+        name: "token"
+        required: true
+        type: "string"
+      - in: "query"
+        name: "email"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        required: true
+        schema:
+          $ref: "#/definitions/Message"
+      responses:
+        "200":
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Dialog"
+        "400":
+          description: "Invalid email"
+        "401":
+          description: "Invalid token"
+        "405":
+          description: "Invalid message"
+  /messenger/delete_message:
+    post:
+      tags:
+      - "messenger"
+      parameters:
+      - in: "query"
+        name: "token"
+        required: true
+        type: "string"
+      - in: "query"
+        name: "message_id"
+        required: true
+        type: "integer"
+      responses:
+        "200":
+          description: "OK"
+        "400":
+          description: "Invalid message id"
+        "401":
+          description: "Invalid token"
+  /messenger/delete_dialog:
+    post:
+      tags:
+      - "messenger"
+      parameters:
+      - in: "query"
+        name: "token"
+        required: true
+        type: "string"
+      - in: "query"
+        name: "dialog_id"
+        required: true
+        type: "integer"
+      responses:
+        "200":
+          description: "OK"
+        "400":
+          description: "Invalid message id"
+        "401":
+          description: "Invalid token"
+definitions:
+  Id:
+    type: "integer"
+    example: 21796
+  Email:
+    type: "string"
+    example: "user@mail.ru"
+  Account:
+    type: "object"
+    properties:
+      email:
+        $ref: "#/definitions/Email"
+      password:
+        type: "string"
+        description: "SHA-256 hash of user original password"
+        example: "f33ae3bc9a22cd7564990a794"
+  User:
+    type: "object"
+    properties:
+      email:
+        $ref: "#/definitions/Email"
+      name:
+        type: "string"
+        description: "User name"
+        example: "John"
+  Token:
+    type: "object"
+    properties:
+      token:
+        type: "string"
+        example: "e150a1ec81e8e93e1eae2c3a7"
+  Message:
+    type: "object"
+    properties:
+      sender:
+        $ref: "#/definitions/Email"
+      text:
+        type: "string"
+        example: "Hello, John!"
+  StoredMessage:
+    type: "object"
+    properties:
+      message_id:
+        $ref: "#/definitions/Id"
+      sender:
+        $ref: "#/definitions/Email"
+      text:
+        type: "string"
+        example: "Hello, John!"
+  Dialog:
+    type: "object"
+    properties:
+      user:
+        $ref: "#/definitions/User"
+      messages:
+        type: "array"
+        items:
+          $ref: "#/definitions/StoredMessage"
+  DialogInfo:
+    type: "object"
+    properties:
+      dialog_id:
+        $ref: "#/definitions/Id"
+      user:
+        $ref: "#/definitions/User"
+      last_message:
+        $ref: "#/definitions/Message"
+  Dialogs:
+    type: "object"
+    properties:
+      dialogs:
+        type: "array"
+        items:
+          $ref: "#/definitions/DialogInfo"
