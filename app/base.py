@@ -1,5 +1,5 @@
 from models.account import User, Token
-from models.messenger import Message
+from models.messenger import Chat, Message
 from util import get_db, get_token
 
 
@@ -107,16 +107,36 @@ def get_chats(user):
     chats = []
     for row in rows:
         chat_id = row[0]
+
         cursor.execute(f'SELECT {USER_COLUMNS} FROM user JOIN membership ON user.id=membership.user_id WHERE chat_id=?', (chat_id,))
         user_rows = cursor.fetchall()
         users = []
         for user_row in user_rows:
             users.append(User(user_row).about())
+
         cursor.execute(f'SELECT {MESSAGE_COLUMNS} FROM message WHERE chat_id=? ORDER BY id DESC LIMIT 1', (chat_id,))
         message_row = cursor.fetchone()
         message = Message(message_row).__dict__
-        chats.append({'chat_id': chat_id, 'users': users, 'latest_message': message})
+
+        cursor.execute(f'SELECT {CHAT_COLUMNS} FROM chat WHERE id=?', (chat_id,))
+        chat_row = cursor.fetchone()
+        chat_type = Chat(chat_row).type
+
+        chats.append({'chat_id': chat_id, 'type': chat_type, 'users': users, 'latest_message': message})
     return chats
+
+
+def create_chat(creator, users):
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('INSERT INTO chat (type) VALUES ("public")')
+    chat_id = cursor.lastrowid
+
+    for user in [creator, *users]:
+        cursor.execute('INSERT INTO membership (user_id, chat_id) VALUES (?, ?)', (user.id, chat_id))
+
+    return chat_id
 
 
 def is_user_in_chat(user, chat_id):
@@ -142,8 +162,12 @@ def get_chat_history(chat_id):
     messages = []
     for message_row in message_rows:
         messages.append(Message(message_row).__dict__)
-        
-    return {'users': users, 'messages': messages}
+
+    cursor.execute(f'SELECT {CHAT_COLUMNS} FROM chat WHERE id=?', (chat_id,))
+    chat_row = cursor.fetchone()
+    chat_type = Chat(chat_row).type
+
+    return {'users': users, 'type': chat_type, 'messages': messages}
 
 
 def send_message(user, chat_id, message):
@@ -152,19 +176,22 @@ def send_message(user, chat_id, message):
     cursor.execute('INSERT INTO message (chat_id, user_id, time, text) VALUES (?, ?, ?, ?)', (chat_id, user.id, message.time, message.text))
 
 
-def send_private(sender, recipient, message):
+def get_private_chat_id(sender, recipient):
     db = get_db()
     cursor = db.cursor()
 
     cursor.execute('SELECT EXISTS(SELECT chat.id FROM chat JOIN membership AS sender_ms ON chat.id=sender_ms.chat_id JOIN membership AS recipient_ms ON chat.id=recipient_ms.chat_id WHERE type="private" AND sender_ms.user_id=? AND recipient_ms.user_id=?) AS found', (sender.id, recipient.id))
     row = cursor.fetchone()
-    if not row[0]:
-    	cursor.execute('INSERT INTO chat (type) VALUES ("private")')
-    	chat_id = cursor.lastrowid
-    	cursor.execute('INSERT INTO membership (user_id, chat_id) VALUES (?, ?)', (sender.id, chat_id))
-    	cursor.execute('INSERT INTO membership (user_id, chat_id) VALUES (?, ?)', (recipient.id, chat_id))
-    else:
+
+    if row[0]:
         cursor.execute('SELECT chat.id FROM chat JOIN membership AS sender_ms ON chat.id=sender_ms.chat_id JOIN membership AS recipient_ms ON chat.id=recipient_ms.chat_id WHERE type="private" AND sender_ms.user_id=? AND recipient_ms.user_id=?', (sender.id, recipient.id))
         row = cursor.fetchone()
-        chat_id = row[0]
-    send_message(sender, chat_id, message)
+        return row[0]
+
+    cursor.execute('INSERT INTO chat (type) VALUES ("private")')
+    chat_id = cursor.lastrowid
+    cursor.execute('INSERT INTO membership (user_id, chat_id) VALUES (?, ?)', (sender.id, chat_id))
+    cursor.execute('INSERT INTO membership (user_id, chat_id) VALUES (?, ?)', (recipient.id, chat_id))
+    return chat_id
+
+

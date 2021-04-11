@@ -1,3 +1,9 @@
+class Chat:
+    def __init__(self, row):
+        self.id = row[0]
+        self.type = row[1]
+
+
 class MessageModel:
     def __init__(self, json):
         self.text = json.get('text', None)
@@ -5,6 +11,7 @@ class MessageModel:
 
     def valid(self):
         return type(self.text) == str and len(self.text) > 0
+
 
 class Message:
     def __init__(self, row):

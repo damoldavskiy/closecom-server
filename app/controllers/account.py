@@ -168,7 +168,7 @@ def set_about():
 
     user = base.get_user_by_token(token, 'access')
     if not user:
-        return error('invald token', 401)
+        return error('invalid token', 401)
 
     base.set_user_about(user, about)
     get_db().commit()

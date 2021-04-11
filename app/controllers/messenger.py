@@ -16,7 +16,9 @@ def chats():
     token = args.get('token')
     user = base.get_user_by_token(token, 'access')
     if not user:
-        return error('invald token', 401)
+        return error('invalid token', 401)
+
+    log_info(f'Get chats for user {user.email}')
 
     return {'chats': base.get_chats(user)}
 
@@ -28,7 +30,7 @@ def chat_history():
     token = args.get('token')
     user = base.get_user_by_token(token, 'access')
     if not user:
-        return error('invald token', 401)
+        return error('invalid token', 401)
 
     chat_id = args.get('chat_id')
     if chat_id is None:
@@ -37,7 +39,63 @@ def chat_history():
     if not base.is_user_in_chat(user, chat_id):
         return error('invalid chat id', 400)
 
+    log_info(f'Get chat history for user {user.email}')
+
     return base.get_chat_history(chat_id)
+
+
+@mod.route('/messenger/private_chat_id')
+def private_chat_id():
+    args = request.args
+
+    token = args.get('token')
+    user = base.get_user_by_token(token, 'access')
+    if not user:
+        return error('invalid token', 401)
+
+    recipient_id = args.get('user_id')
+    if recipient_id is None:
+        return error('invalid user id', 400)
+
+    recipient = base.get_user_by_id(recipient_id)
+    if recipient is None:
+        return error('invalid user id', 400)
+
+    if recipient.id == user.id:
+        return error('self chats are not supported', 400)
+
+    log_info(f'Get private chat id by user {user.email} for user {recipient.email}')
+
+    return {'chat_id': base.get_private_chat_id(user, recipient)}
+
+
+@mod.route('/messenger/create_chat', methods=['POST'])
+def create_chat():
+    args = request.args
+    content = request.json
+
+    token = args.get('token')
+    user = base.get_user_by_token(token, 'access')
+    if not user:
+        return error('invalid token', 401)
+
+    user_ids = content.get('users', None)
+    if type(user_ids) is not list or len(user_ids) == 0:
+        return error('invalid users list', 405)
+
+    users = []
+    for user_id in user_ids:
+        current_user = base.get_user_by_id(user_id)
+        if current_user is None:
+            return error('invalid user id in list', 402)
+        users.append(current_user)
+
+    chat_id = base.create_chat(user, users)
+    get_db().commit()
+
+    log_info(f'Create public chat by user {user.email}')
+
+    return {'chat_id': chat_id}
 
 
 @mod.route('/messenger/send_message', methods=['POST'])
@@ -48,7 +106,7 @@ def send_message():
     token = args.get('token')
     user = base.get_user_by_token(token, 'access')
     if not user:
-        return error('invald token', 401)
+        return error('invalid token', 401)
 
     chat_id = args.get('chat_id')
     if not base.is_user_in_chat(user, chat_id):
@@ -60,30 +118,9 @@ def send_message():
 
     base.send_message(user, chat_id, message)
     get_db().commit()
-    return ok()
 
+    log_info(f'Send message {message.text} by user {user.email}')
 
-@mod.route('/messenger/send_private', methods=['POST'])
-def send_private():
-    args = request.args
-    content = request.json
-
-    token = args.get('token')
-    user = base.get_user_by_token(token, 'access')
-    if not user:
-        return error('invald token', 401)
-
-    recipient_id = args.get('user_id')
-    recipient = base.get_user_by_id(recipient_id)
-    if recipient is None:
-        return error('invalid user id', 400)
-
-    message = MessageModel(content)
-    if not message.valid():
-        return error('invalid message', 405)
-
-    base.send_private(user, recipient, message)
-    get_db().commit()
     return ok()
 
 
@@ -94,7 +131,7 @@ def delete_message():
     token = args.get('token')
     user = base.get_user_by_token(token, 'access')
     if not user:
-        return error('invald token', 401)
+        return error('invalid token', 401)
     return error('not implemented', 404)
 
 
@@ -105,5 +142,5 @@ def delete_chat():
     token = args.get('token')
     user = base.get_user_by_token(token, 'access')
     if not user:
-        return error('invald token', 401)
+        return error('invalid token', 401)
     return error('not implemented', 404)
