@@ -18,13 +18,7 @@ def user_about():
 
     log_info(f'User about {user.email}')
 
-    return {
-        'email': user.email,
-        'confirmed': user.confirmed,
-        'about': {
-            'name': user.name
-        }
-    }
+    return user.about()
 
 
 @mod.route('/bluetooth/set_bid', methods=['POST'])

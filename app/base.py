@@ -1,4 +1,5 @@
 from models.account import User, Token
+from models.messenger import Message
 from util import get_db, get_token
 
 
@@ -7,6 +8,16 @@ TOKEN_COLUMNS = 'id, type, token, user_id'
 CHAT_COLUMNS = 'id, type'
 MEMBERSHIP_COLUMNS = 'user_id, chat_id'
 MESSAGE_COLUMNS = 'id, chat_id, user_id, time, text'
+
+
+def get_user_by_id(user_id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(f'SELECT {USER_COLUMNS} FROM user WHERE id=?', (user_id,))
+    row = cursor.fetchone()
+    if row == None:
+        return None
+    return User(row)
 
 
 def get_user_by_email(email):
@@ -22,7 +33,7 @@ def get_user_by_email(email):
 def get_user_by_token(token, token_type):
     db = get_db()
     cursor = db.cursor()
-    cursor.execute(f'SELECT {TOKEN_COLUMNS} FROM token WHERE token=? AND type=?', (token,token_type))
+    cursor.execute(f'SELECT {TOKEN_COLUMNS} FROM token WHERE token=? AND type=?', (token, token_type))
     row = cursor.fetchone()
     if row == None:
         return None
@@ -86,3 +97,74 @@ def set_user_bid(user, bid):
     db = get_db()
     cursor = db.cursor()
     cursor.execute('UPDATE user SET bid=? WHERE id=?', (bid, user.id))
+
+
+def get_chats(user):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT chat_id FROM membership WHERE user_id=?', (user.id,))
+    rows = cursor.fetchall()
+    chats = []
+    for row in rows:
+        chat_id = row[0]
+        cursor.execute(f'SELECT {USER_COLUMNS} FROM user JOIN membership ON user.id=membership.user_id WHERE chat_id=?', (chat_id,))
+        user_rows = cursor.fetchall()
+        users = []
+        for user_row in user_rows:
+            users.append(User(user_row).about())
+        cursor.execute(f'SELECT {MESSAGE_COLUMNS} FROM message WHERE chat_id=? ORDER BY id DESC LIMIT 1', (chat_id,))
+        message_row = cursor.fetchone()
+        message = Message(message_row).__dict__
+        chats.append({'chat_id': chat_id, 'users': users, 'latest_message': message})
+    return chats
+
+
+def is_user_in_chat(user, chat_id):
+     db = get_db()
+     cursor = db.cursor()
+     cursor.execute(f'SELECT EXISTS(SELECT {MEMBERSHIP_COLUMNS} FROM membership WHERE user_id=? AND chat_id=?) AS found', (user.id, chat_id))
+     row = cursor.fetchone()
+     return bool(row[0])
+
+
+def get_chat_history(chat_id):
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute(f'SELECT {USER_COLUMNS} FROM user JOIN membership ON user.id=membership.user_id WHERE chat_id=?', (chat_id,))
+    user_rows = cursor.fetchall()
+    users = []
+    for user_row in user_rows:
+        users.append(User(user_row).about())
+
+    cursor.execute(f'SELECT {MESSAGE_COLUMNS} FROM message WHERE chat_id=? ORDER BY id', (chat_id,))
+    message_rows = cursor.fetchall()
+    messages = []
+    for message_row in message_rows:
+        messages.append(Message(message_row).__dict__)
+        
+    return {'users': users, 'messages': messages}
+
+
+def send_message(user, chat_id, message):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('INSERT INTO message (chat_id, user_id, time, text) VALUES (?, ?, ?, ?)', (chat_id, user.id, message.time, message.text))
+
+
+def send_private(sender, recipient, message):
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute('SELECT EXISTS(SELECT chat.id FROM chat JOIN membership AS sender_ms ON chat.id=sender_ms.chat_id JOIN membership AS recipient_ms ON chat.id=recipient_ms.chat_id WHERE type="private" AND sender_ms.user_id=? AND recipient_ms.user_id=?) AS found', (sender.id, recipient.id))
+    row = cursor.fetchone()
+    if not row[0]:
+    	cursor.execute('INSERT INTO chat (type) VALUES ("private")')
+    	chat_id = cursor.lastrowid
+    	cursor.execute('INSERT INTO membership (user_id, chat_id) VALUES (?, ?)', (sender.id, chat_id))
+    	cursor.execute('INSERT INTO membership (user_id, chat_id) VALUES (?, ?)', (recipient.id, chat_id))
+    else:
+        cursor.execute('SELECT chat.id FROM chat JOIN membership AS sender_ms ON chat.id=sender_ms.chat_id JOIN membership AS recipient_ms ON chat.id=recipient_ms.chat_id WHERE type="private" AND sender_ms.user_id=? AND recipient_ms.user_id=?', (sender.id, recipient.id))
+        row = cursor.fetchone()
+        chat_id = row[0]
+    send_message(sender, chat_id, message)

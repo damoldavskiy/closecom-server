@@ -47,6 +47,16 @@ class User:
     def match(self, account):
         return self.email == account.email and self.password == account.password
 
+    def about(self):
+        return {
+            'id': self.id,
+            'email': self.email,
+            'confirmed': self.confirmed,
+            'about': {
+                'name': self.name
+            }
+        }
+
 
 class Token:
     def __init__(self, row):
