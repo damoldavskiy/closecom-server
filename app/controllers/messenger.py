@@ -69,6 +69,24 @@ def private_chat_id():
     return {'chat_id': base.get_private_chat_id(user, recipient)}
 
 
+@mod.route('/messenger/user_search')
+def user_search():
+    args = request.args
+
+    token = args.get('token')
+    user = base.get_user_by_token(token, 'access')
+    if not user:
+        return error('invalid token', 401)
+
+    email = args.get('email')
+    if email is None:
+        return error('invalid email to search', 400)
+
+    log_info(f'Search by user {user.email} for {email}')
+
+    return {'users': base.user_search(user, email)}
+
+
 @mod.route('/messenger/create_chat', methods=['POST'])
 def create_chat():
     args = request.args

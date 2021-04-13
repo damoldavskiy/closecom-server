@@ -195,3 +195,16 @@ def get_private_chat_id(sender, recipient):
     return chat_id
 
 
+def user_search(requester, email):
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute(f'SELECT {USER_COLUMNS} FROM user WHERE email LIKE ?', (f'%{email}%',))
+    user_rows = cursor.fetchall()
+    users = []
+    for user_row in user_rows:
+        user = User(user_row)
+        if user.email != requester.email:
+            users.append(user.about())
+
+    return users
