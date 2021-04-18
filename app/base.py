@@ -181,9 +181,9 @@ def get_chat_history(chat_id):
 
     cursor.execute(f'SELECT {CHAT_COLUMNS} FROM chat WHERE id=?', (chat_id,))
     chat_row = cursor.fetchone()
-    chat_type = Chat(chat_row).type
+    chat = Chat(chat_row)
 
-    return {'users': users, 'senders': senders, 'type': chat_type, 'messages': messages}
+    return {'users': users, 'senders': senders, 'type': chat.type, 'name': chat.name, 'messages': messages}
 
 
 def send_message(user, chat_id, message):

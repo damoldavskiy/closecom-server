@@ -18,9 +18,15 @@ def chats():
     if not user:
         return error('invalid token', 401)
 
+    chats = base.get_chats(user)
+    for chat in chats:
+        if chat['type'] == 'private':
+            recipient = [r for r in chat['users'] if r['id'] != user.id][0]
+            chat['name'] = recipient['email']
+
     log_info(f'Get chats for user {user.email}')
 
-    return {'chats': base.get_chats(user)}
+    return {'chats': chats}
 
 
 @mod.route('/messenger/chat_history')
@@ -39,9 +45,14 @@ def chat_history():
     if not base.is_user_in_chat(user, chat_id):
         return error('invalid chat id', 400)
 
+    chat = base.get_chat_history(chat_id)
+    if chat['type'] == 'private':
+        recipient = [r for r in chat['users'] if r['id'] != user.id][0]
+        chat['name'] = recipient['email']
+
     log_info(f'Get chat history for user {user.email}')
 
-    return base.get_chat_history(chat_id)
+    return chat
 
 
 @mod.route('/messenger/start_dialog', methods=['POST'])
