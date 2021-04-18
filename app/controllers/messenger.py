@@ -78,7 +78,7 @@ def start_dialog():
     base.send_message(user, chat_id, message)
     get_db().commit()
 
-    return ok()
+    return {'chat_id': chat_id}
 
 
 @mod.route('/messenger/user_search')
