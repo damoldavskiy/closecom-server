@@ -36,5 +36,7 @@ CREATE TABLE message (
     chat_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     time TEXT NOT NULL,
-    text TEXT NOT NULL
+    text TEXT NOT NULL,
+    FOREIGN KEY(chat_id) REFERENCES chat(id)
+        ON DELETE CASCADE
 );

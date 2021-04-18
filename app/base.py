@@ -57,6 +57,26 @@ def get_user_by_bid(bid):
     return User(row)
 
 
+def get_chat_by_id(chat_id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(f'SELECT {CHAT_COLUMNS} FROM chat WHERE id=?', (chat_id,))
+    row = cursor.fetchone()
+    if row == None:
+        return None
+    return Chat(row)
+
+
+def get_message_by_id(message_id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(f'SELECT {MESSAGE_COLUMNS} FROM message WHERE id=?', (message_id,))
+    row = cursor.fetchone()
+    if row == None:
+        return None
+    return Message(row)
+
+
 def create_user(account):
     db = get_db()
     cursor = db.cursor()
@@ -126,7 +146,7 @@ def get_chats(user):
 
         cursor.execute(f'SELECT {MESSAGE_COLUMNS} FROM message WHERE chat_id=? ORDER BY id DESC LIMIT 1', (chat_id,))
         message_row = cursor.fetchone()
-        message = Message(message_row).__dict__
+        message = Message(message_row).__dict__ if message_row is not None else None
 
         cursor.execute(f'SELECT {CHAT_COLUMNS} FROM chat WHERE id=?', (chat_id,))
         chat_row = cursor.fetchone()
@@ -222,3 +242,29 @@ def user_search(requester, email):
             users.append(user.about())
 
     return users
+
+
+def delete_message(message):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('DELETE FROM message WHERE id=?', (message.id,))
+
+
+def delete_chat(chat):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('DELETE FROM chat WHERE id=?', (chat.id,))
+
+
+def delete_membership(user, chat):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('DELETE FROM membership WHERE user_id=? AND chat_id=?', (user.id, chat.id))
+
+    cursor.execute('SELECT EXISTS(SELECT user_id FROM membership WHERE chat_id=?) AS found', (chat.id,))
+    row = cursor.fetchone()
+
+    if row[0]:
+        return
+
+    delete_chat(chat)

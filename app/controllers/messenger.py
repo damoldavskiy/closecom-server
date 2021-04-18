@@ -21,8 +21,8 @@ def chats():
     chats = base.get_chats(user)
     for chat in chats:
         if chat['type'] == 'private':
-            recipient = [r for r in chat['users'] if r['id'] != user.id][0]
-            chat['name'] = recipient['email']
+            recipients = [r for r in chat['users'] if r['id'] != user.id]
+            chat['name'] = recipients[0]['email'] if len(recipients) > 0 else 'Account deleted'
 
     log_info(f'Get chats for user {user.email}')
 
@@ -47,8 +47,8 @@ def chat_history():
 
     chat = base.get_chat_history(chat_id)
     if chat['type'] == 'private':
-        recipient = [r for r in chat['users'] if r['id'] != user.id][0]
-        chat['name'] = recipient['email']
+        recipients = [r for r in chat['users'] if r['id'] != user.id]
+        chat['name'] = recipients[0]['email'] if len(recipients) > 0 else 'Account deleted'
 
     log_info(f'Get chat history for user {user.email}')
 
@@ -177,7 +177,18 @@ def delete_message():
     user = base.get_user_by_token(token, 'access')
     if not user:
         return error('invalid token', 401)
-    return error('not implemented', 404)
+
+    message_id = args.get('message_id')
+    message = base.get_message_by_id(message_id)
+    if not message or message.user_id != user.id:
+        return error('invalid message id', 400)
+
+    base.delete_message(message)
+    get_db().commit()
+
+    log_info(f'Deleted message {message.text} by user {user.email}')
+
+    return ok()
 
 
 @mod.route('/messenger/delete_chat', methods=['POST'])
@@ -188,4 +199,18 @@ def delete_chat():
     user = base.get_user_by_token(token, 'access')
     if not user:
         return error('invalid token', 401)
-    return error('not implemented', 404)
+
+    chat_id = args.get('chat_id')
+    if not base.is_user_in_chat(user, chat_id):
+        return error('invalid chat id', 400)
+
+    chat = base.get_chat_by_id(chat_id)
+    if chat.type == 'private':
+        base.delete_chat(chat)
+        log_info(f'Deleted private chat {chat_id} by user {user.email}')
+    else:
+        base.delete_membership(user, chat)
+        log_info(f'Deleted membership in chat {chat_id} by user {user.email}')
+    get_db().commit()
+
+    return ok()
