@@ -18,7 +18,8 @@ CREATE TABLE token (
 
 CREATE TABLE chat (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    type TEXT NOT NULL
+    type TEXT NOT NULL,
+    name TEXT
 );
 
 CREATE TABLE membership (

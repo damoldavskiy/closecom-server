@@ -2,6 +2,7 @@ class Chat:
     def __init__(self, row):
         self.id = row[0]
         self.type = row[1]
+        self.name = row[2]
 
 
 class MessageModel:

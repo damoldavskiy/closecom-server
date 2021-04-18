@@ -44,9 +44,10 @@ def chat_history():
     return base.get_chat_history(chat_id)
 
 
-@mod.route('/messenger/private_chat_id')
-def private_chat_id():
+@mod.route('/messenger/start_dialog', methods=['POST'])
+def start_dialog():
     args = request.args
+    content = request.json
 
     token = args.get('token')
     user = base.get_user_by_token(token, 'access')
@@ -64,9 +65,20 @@ def private_chat_id():
     if recipient.id == user.id:
         return error('self chats are not supported', 400)
 
-    log_info(f'Get private chat id by user {user.email} for user {recipient.email}')
+    message = MessageModel(content)
+    if not message.valid():
+        return error('invalid message', 405)
 
-    return {'chat_id': base.get_private_chat_id(user, recipient)}
+    log_info(f'Start dialog by user {user.email} for user {recipient.email}')
+
+    chat_id = base.get_private_chat_id(user, recipient)
+    if not chat_id:
+        return error('chat already started', 402)
+
+    base.send_message(user, chat_id, message)
+    get_db().commit()
+
+    return ok()
 
 
 @mod.route('/messenger/user_search')
@@ -97,6 +109,10 @@ def create_chat():
     if not user:
         return error('invalid token', 401)
 
+    chat_name = args.get('name')
+    if type(chat_name) is not str or len(chat_name) == 0:
+        return error('invalid chat name', 402)
+
     user_ids = content.get('users', None)
     if type(user_ids) is not list or len(user_ids) == 0:
         return error('invalid users list', 405)
@@ -108,7 +124,7 @@ def create_chat():
             return error('invalid user id in list', 402)
         users.append(current_user)
 
-    chat_id = base.create_chat(user, users)
+    chat_id = base.create_chat(user, users, chat_name)
     get_db().commit()
 
     log_info(f'Create public chat by user {user.email}')
