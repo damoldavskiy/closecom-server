@@ -15,6 +15,7 @@ MESSAGE_COLUMNS = columns('id chat_id user_id time text', 'message')
 
 
 def get_user_by_id(user_id):
+    '''Get user entity by id'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute(f'SELECT {USER_COLUMNS} FROM user WHERE id=?', (user_id,))
@@ -25,6 +26,7 @@ def get_user_by_id(user_id):
 
 
 def get_user_by_email(email):
+    '''Get user entity by email'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute(f'SELECT {USER_COLUMNS} FROM user WHERE email=?', (email,))
@@ -35,6 +37,7 @@ def get_user_by_email(email):
 
 
 def get_user_by_token(token, token_type):
+    '''Get user entity by token'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute(f'SELECT {TOKEN_COLUMNS} FROM token WHERE token=? AND type=?', (token, token_type))
@@ -48,6 +51,7 @@ def get_user_by_token(token, token_type):
 
 
 def get_user_by_bid(bid):
+    '''Get user entity by Bluetooth ID'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute(f'SELECT {USER_COLUMNS} FROM user WHERE bid=?', (bid,))
@@ -58,6 +62,7 @@ def get_user_by_bid(bid):
 
 
 def get_chat_by_id(chat_id):
+    '''Get chat entity by id'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute(f'SELECT {CHAT_COLUMNS} FROM chat WHERE id=?', (chat_id,))
@@ -68,6 +73,7 @@ def get_chat_by_id(chat_id):
 
 
 def get_message_by_id(message_id):
+    '''Get message entity by id'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute(f'SELECT {MESSAGE_COLUMNS} FROM message WHERE id=?', (message_id,))
@@ -78,6 +84,7 @@ def get_message_by_id(message_id):
 
 
 def create_user(account):
+    '''Create new user using following parameters'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute('INSERT INTO user (email, password) VALUES (?, ?)', (account.email, account.password))
@@ -86,12 +93,14 @@ def create_user(account):
 
 
 def delete_user(user):
+    '''Delete user'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute('DELETE FROM user WHERE email=?', (user.email,))
 
 
 def create_token(user, token_type):
+    '''Create new token of such type for following user'''
     db = get_db()
     cursor = db.cursor()
     token = get_token()
@@ -100,30 +109,35 @@ def create_token(user, token_type):
 
 
 def set_user_password(user, password):
+    '''Set new password for following user'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute('UPDATE user SET password=? WHERE id=?', (password, user.id))
 
 
 def set_user_confirmed(user, confirmed):
+    '''Set user confirmed flag'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute('UPDATE user SET confirmed=? WHERE id=?', (confirmed, user.id))
 
 
 def set_user_about(user, about):
+    '''Set new user about fields'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute('UPDATE user SET name=? WHERE id=?', (about.name, user.id))
 
 
 def set_user_bid(user, bid):
+    '''Set new user Bluetooth ID'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute('UPDATE user SET bid=? WHERE id=?', (bid, user.id))
 
 
 def get_chats(user):
+    '''Get all chats for following users'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute('SELECT chat_id FROM membership WHERE user_id=?', (user.id,))
@@ -157,6 +171,7 @@ def get_chats(user):
 
 
 def create_chat(creator, users, chat_name):
+    '''Create new chat with following participants and name'''
     db = get_db()
     cursor = db.cursor()
     
@@ -170,14 +185,16 @@ def create_chat(creator, users, chat_name):
 
 
 def is_user_in_chat(user, chat_id):
-     db = get_db()
-     cursor = db.cursor()
-     cursor.execute(f'SELECT EXISTS(SELECT {MEMBERSHIP_COLUMNS} FROM membership WHERE user_id=? AND chat_id=?) AS found', (user.id, chat_id))
-     row = cursor.fetchone()
-     return bool(row[0])
+    '''Check if user is in chat or not'''
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(f'SELECT EXISTS(SELECT {MEMBERSHIP_COLUMNS} FROM membership WHERE user_id=? AND chat_id=?) AS found', (user.id, chat_id))
+    row = cursor.fetchone()
+    return bool(row[0])
 
 
 def get_chat_history(chat_id):
+    '''Get all chat information and its messages'''
     db = get_db()
     cursor = db.cursor()
 
@@ -207,12 +224,14 @@ def get_chat_history(chat_id):
 
 
 def send_message(user, chat_id, message):
+    '''Send a message to following chat'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute('INSERT INTO message (chat_id, user_id, time, text) VALUES (?, ?, ?, ?)', (chat_id, user.id, message.time, message.text))
 
 
 def get_private_chat_id(sender, recipient):
+    '''Get a chat id that corresponds to private chat between these two users'''
     db = get_db()
     cursor = db.cursor()
 
@@ -230,6 +249,7 @@ def get_private_chat_id(sender, recipient):
 
 
 def user_search(requester, email):
+    '''Search all emails that fits given template (except requester)'''
     db = get_db()
     cursor = db.cursor()
 
@@ -245,18 +265,21 @@ def user_search(requester, email):
 
 
 def delete_message(message):
+    '''Delete message with given id'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute('DELETE FROM message WHERE id=?', (message.id,))
 
 
 def delete_chat(chat):
+    '''Delete chat with given id'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute('DELETE FROM chat WHERE id=?', (chat.id,))
 
 
 def delete_membership(user, chat):
+    '''Delete membership of given user and chat (and delete chat if no users left)'''
     db = get_db()
     cursor = db.cursor()
     cursor.execute('DELETE FROM membership WHERE user_id=? AND chat_id=?', (user.id, chat.id))

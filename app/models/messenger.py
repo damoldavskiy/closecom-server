@@ -11,6 +11,7 @@ class MessageModel:
         self.time = json.get('time', None)
 
     def valid(self):
+        '''Validates message model'''
         return type(self.text) == str and len(self.text) > 0
 
 

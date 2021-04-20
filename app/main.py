@@ -32,11 +32,13 @@ logging.basicConfig(filename=ERROR_LOG_PATH,
 
 @app.errorhandler(500)
 def internal_error(exception):
+    '''Handles all internal errors'''
     return error('internal server error', 500)
 
 
 @app.teardown_appcontext
 def close_connection(exception):
+    '''Closes connection to database (executes automatically)'''
     db = getattr(g, '_database', None)
     if db is not None:
         db.close()
